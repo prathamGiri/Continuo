@@ -2,9 +2,12 @@ package com.example.taskmanager.services;
 
 import com.example.taskmanager.dto.requests.CreateTicketRequest;
 import com.example.taskmanager.dto.requests.UpdateTicketRequest;
+import com.example.taskmanager.dto.responses.TicketResponse;
 import com.example.taskmanager.entities.Team;
 import com.example.taskmanager.entities.Ticket;
 import com.example.taskmanager.entities.User;
+import com.example.taskmanager.mappers.TicketResponseMapper;
+import com.example.taskmanager.mappers.UserResponseMapper;
 import com.example.taskmanager.repository.TeamRepository;
 import com.example.taskmanager.repository.TicketRepository;
 import com.example.taskmanager.repository.UserRepository;
@@ -30,27 +33,38 @@ public class TicketServiceImpl implements TicketService{
     }
 
     @Override
-    public List<Ticket> getAllTickets(){
-        return ticketRepository.findAll();
+    public List<TicketResponse> getAllTickets(){
+        return ticketRepository.findAll()
+                .stream()
+                .map(TicketResponseMapper::toDTO)
+                .toList();
     };
 
     @Override
-    public Optional<Ticket> getTicketById(Long ticketId){
-        return ticketRepository.findById(ticketId);
+    public TicketResponse getTicketById(Long ticketId){
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket Not Found"));
+        return TicketResponseMapper.toDTO(ticket);
     }
 
     @Override
-    public List<Ticket> getTicketByTeam(Long teamId){
-        return ticketRepository.findByForTeam_TeamIdOrderByCreatedAt(teamId);
+    public List<TicketResponse> getTicketByTeam(Long teamId){
+        return ticketRepository.findByForTeam_TeamIdOrderByCreatedAt(teamId)
+                .stream()
+                .map(TicketResponseMapper::toDTO)
+                .toList();
     }
 
     @Override
-    public List<Ticket> getTicketByUser(Long userId){
-        return ticketRepository.findByAssignedUser_UserIdOrderByCreatedAt(userId);
+    public List<TicketResponse> getTicketByUser(Long userId){
+        return ticketRepository.findByAssignedUser_UserIdOrderByCreatedAt(userId)
+                .stream()
+                .map(TicketResponseMapper::toDTO)
+                .toList();
     }
 
     @Override
-    public Ticket createTicket(CreateTicketRequest request){
+    public TicketResponse createTicket(CreateTicketRequest request){
         Team forTeam = teamRepository.findById(request.getForTeamId())
                 .orElseThrow(() -> new RuntimeException("Team not found"));
         Team fromTeam = teamRepository.findById(request.getFromTeamId())
@@ -64,11 +78,11 @@ public class TicketServiceImpl implements TicketService{
         ticket.setFromUser(fromUser);
         ticket.setTicketStatus(request.getTicketStatus());
 
-        return ticketRepository.save(ticket);
+        return TicketResponseMapper.toDTO(ticketRepository.save(ticket));
     }
 
     @Override
-    public Ticket updateTicket(Long ticketId, UpdateTicketRequest ticket){
+    public TicketResponse updateTicket(Long ticketId, UpdateTicketRequest ticket){
         Ticket existing = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
         User assignedUser;
@@ -80,6 +94,6 @@ public class TicketServiceImpl implements TicketService{
         if (ticket.getTicketStatus() != null){
             existing.setTicketStatus(ticket.getTicketStatus());
         }
-        return ticketRepository.save(existing);
+        return TicketResponseMapper.toDTO(ticketRepository.save(existing));
     }
 }

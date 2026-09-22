@@ -1,5 +1,6 @@
 package com.example.taskmanager.controller;
 
+import com.example.taskmanager.dto.responses.TeamResponse;
 import com.example.taskmanager.entities.Team;
 import com.example.taskmanager.services.TeamService;
 import org.springframework.web.bind.annotation.*;
@@ -16,17 +17,22 @@ public class TeamController {
     }
 
     @GetMapping("/teams")
-    public List<Team> getAllTeams(){
+    public List<TeamResponse> getAllTeams(){
         return teamService.getAllTeams();
     }
 
     @GetMapping("/teams/{teamId}")
-    public Optional<Team> getTeamById(@PathVariable Long teamId){
+    public TeamResponse getTeamById(@PathVariable Long teamId){
         return teamService.getTeamById(teamId);
     }
 
+    @GetMapping("/teams/{teamId}/users")
+    public TeamResponse getTeamUsersById(@PathVariable Long teamId){
+        return teamService.getTeamUsersById(teamId);
+    }
+
     @PostMapping("/teams")
-    public Team createTeam(@RequestBody Team team){
+    public TeamResponse createTeam(@RequestBody Team team){
         return teamService.createTeam(team);
     }
 }

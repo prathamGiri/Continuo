@@ -2,11 +2,12 @@ package com.example.taskmanager.dto.responses;
 
 import com.example.taskmanager.entities.Team;
 import com.example.taskmanager.enums.UserRole;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Getter @Setter
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class UserResponse {
     private Long userId;
     private String userName;

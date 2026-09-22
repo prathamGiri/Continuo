@@ -5,6 +5,7 @@ import com.example.taskmanager.dto.responses.UserResponse;
 import com.example.taskmanager.entities.Team;
 import com.example.taskmanager.entities.User;
 import com.example.taskmanager.enums.UserRole;
+import com.example.taskmanager.mappers.UserResponseMapper;
 import com.example.taskmanager.repository.TeamRepository;
 import com.example.taskmanager.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -24,18 +25,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponse> getAllUsers() {
-        return userRepository.findAll();
+        return userRepository.findAll()
+                .stream()
+                .map(UserResponseMapper::toDTO)
+                .toList();
     }
 
     @Override
     public UserResponse getUserById(Long userId){
-        return userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        return UserResponseMapper.toDTO(user);
     }
 
     @Override
     public UserResponse createUser(User user) {
-        return userRepository.save(user);
+        return UserResponseMapper.toDTO(userRepository.save(user));
     }
 
     @Override
@@ -44,13 +49,15 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Team newTeam = teamRepository.findById(request.getNewTeamId())
                 .orElseThrow(() -> new RuntimeException("Team not found"));
-
-        if (newTeam != existing.getTeam()){
+        if (existing.getTeam() != null && existing.getTeam().getTeamId().equals(newTeam.getTeamId())){
+            throw new RuntimeException("User Already a Part of the Team!");
+        }else if (existing.getRole() == UserRole.SysAdmin){
+            throw new RuntimeException("User is a System Administrator. Hence already have access to all teams!");
+        }else {
             existing.setTeam(newTeam);
             existing.setRole(UserRole.Member);
         }
-
-        return userRepository.save(existing);
+        return UserResponseMapper.toDTO(userRepository.save(existing));
     }
 
     @Override
@@ -85,7 +92,7 @@ public class UserServiceImpl implements UserService {
                 }
             }
         }
-        return userRepository.save(existing);
+        return UserResponseMapper.toDTO(userRepository.save(existing));
     }
 
     @Override
@@ -96,6 +103,6 @@ public class UserServiceImpl implements UserService {
         existingUser.setRole(UserRole.Normal);
 
         userRepository.save(existingUser);
-        return existingUser;
+        return UserResponseMapper.toDTO(userRepository.save(existingUser));
     }
 }
