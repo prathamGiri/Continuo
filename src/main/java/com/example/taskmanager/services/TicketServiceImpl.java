@@ -11,26 +11,18 @@ import com.example.taskmanager.mappers.UserResponseMapper;
 import com.example.taskmanager.repository.TeamRepository;
 import com.example.taskmanager.repository.TicketRepository;
 import com.example.taskmanager.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class TicketServiceImpl implements TicketService{
     private final TicketRepository ticketRepository;
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
-
-    public TicketServiceImpl(
-            TicketRepository ticketRepository,
-            TeamRepository teamRepository,
-            UserRepository userRepository
-    ){
-        this.ticketRepository = ticketRepository;
-        this.teamRepository = teamRepository;
-        this.userRepository = userRepository;
-    }
 
     @Override
     public List<TicketResponse> getAllTickets(){

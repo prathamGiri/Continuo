@@ -6,21 +6,18 @@ import com.example.taskmanager.entities.User;
 import com.example.taskmanager.mappers.TeamResponseMapper;
 import com.example.taskmanager.repository.TeamRepository;
 import com.example.taskmanager.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class TeamServiceImpl implements TeamService{
 
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
-
-    public TeamServiceImpl(TeamRepository teamRepository, UserRepository userRepository){
-        this.teamRepository = teamRepository;
-        this.userRepository = userRepository;
-    }
 
     @Override
     public TeamResponse getTeamById(Long teamId){

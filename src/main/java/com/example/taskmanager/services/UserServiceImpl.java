@@ -8,20 +8,17 @@ import com.example.taskmanager.enums.UserRole;
 import com.example.taskmanager.mappers.UserResponseMapper;
 import com.example.taskmanager.repository.TeamRepository;
 import com.example.taskmanager.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final TeamRepository teamRepository;
-
-    public UserServiceImpl(UserRepository userRepository, TeamRepository teamRepository){
-        this.teamRepository = teamRepository;
-        this.userRepository = userRepository;
-    }
 
     @Override
     public List<UserResponse> getAllUsers() {
