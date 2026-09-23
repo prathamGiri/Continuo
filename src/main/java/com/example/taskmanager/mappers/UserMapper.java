@@ -3,7 +3,7 @@ package com.example.taskmanager.mappers;
 import com.example.taskmanager.dto.responses.UserResponse;
 import com.example.taskmanager.entities.User;
 
-public class UserResponseMapper {
+public class UserMapper {
     public static UserResponse toDTO(User user){
         return UserResponse.builder()
                 .userId(user.getUserId())

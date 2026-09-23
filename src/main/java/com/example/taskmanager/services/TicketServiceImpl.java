@@ -6,8 +6,10 @@ import com.example.taskmanager.dto.responses.TicketResponse;
 import com.example.taskmanager.entities.Team;
 import com.example.taskmanager.entities.Ticket;
 import com.example.taskmanager.entities.User;
-import com.example.taskmanager.mappers.TicketResponseMapper;
-import com.example.taskmanager.mappers.UserResponseMapper;
+import com.example.taskmanager.exceptions.TeamNotFoundException;
+import com.example.taskmanager.exceptions.TicketNotFoundException;
+import com.example.taskmanager.exceptions.UserNotFoundException;
+import com.example.taskmanager.mappers.TicketMapper;
 import com.example.taskmanager.repository.TeamRepository;
 import com.example.taskmanager.repository.TicketRepository;
 import com.example.taskmanager.repository.UserRepository;
@@ -15,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,22 +29,22 @@ public class TicketServiceImpl implements TicketService{
     public List<TicketResponse> getAllTickets(){
         return ticketRepository.findAll()
                 .stream()
-                .map(TicketResponseMapper::toDTO)
+                .map(TicketMapper::toDTO)
                 .toList();
     };
 
     @Override
     public TicketResponse getTicketById(Long ticketId){
         Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new RuntimeException("Ticket Not Found"));
-        return TicketResponseMapper.toDTO(ticket);
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+        return TicketMapper.toDTO(ticket);
     }
 
     @Override
     public List<TicketResponse> getTicketByTeam(Long teamId){
         return ticketRepository.findByForTeam_TeamIdOrderByCreatedAt(teamId)
                 .stream()
-                .map(TicketResponseMapper::toDTO)
+                .map(TicketMapper::toDTO)
                 .toList();
     }
 
@@ -51,18 +52,18 @@ public class TicketServiceImpl implements TicketService{
     public List<TicketResponse> getTicketByUser(Long userId){
         return ticketRepository.findByAssignedUser_UserIdOrderByCreatedAt(userId)
                 .stream()
-                .map(TicketResponseMapper::toDTO)
+                .map(TicketMapper::toDTO)
                 .toList();
     }
 
     @Override
     public TicketResponse createTicket(CreateTicketRequest request){
         Team forTeam = teamRepository.findById(request.getForTeamId())
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new TeamNotFoundException(request.getForTeamId()));
         Team fromTeam = teamRepository.findById(request.getFromTeamId())
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new TeamNotFoundException(request.getForTeamId()));
         User fromUser = userRepository.findById(request.getFromUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(request.getFromUserId()));
 
         Ticket ticket = new Ticket();
         ticket.setForTeam(forTeam);
@@ -70,22 +71,22 @@ public class TicketServiceImpl implements TicketService{
         ticket.setFromUser(fromUser);
         ticket.setTicketStatus(request.getTicketStatus());
 
-        return TicketResponseMapper.toDTO(ticketRepository.save(ticket));
+        return TicketMapper.toDTO(ticketRepository.save(ticket));
     }
 
     @Override
     public TicketResponse updateTicket(Long ticketId, UpdateTicketRequest ticket){
         Ticket existing = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
         User assignedUser;
         if (ticket.getAssignedUserId() != null){
             assignedUser = userRepository.findById(ticket.getAssignedUserId())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new UserNotFoundException(ticket.getAssignedUserId()));
             existing.setAssignedUser(assignedUser);
         }
         if (ticket.getTicketStatus() != null){
             existing.setTicketStatus(ticket.getTicketStatus());
         }
-        return TicketResponseMapper.toDTO(ticketRepository.save(existing));
+        return TicketMapper.toDTO(ticketRepository.save(existing));
     }
 }

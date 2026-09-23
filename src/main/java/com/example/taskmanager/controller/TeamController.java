@@ -1,9 +1,13 @@
 package com.example.taskmanager.controller;
 
+import com.example.taskmanager.dto.requests.CreateTeamRequest;
 import com.example.taskmanager.dto.responses.TeamResponse;
 import com.example.taskmanager.entities.Team;
 import com.example.taskmanager.services.TeamService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,22 +20,22 @@ public class TeamController {
     private final TeamService teamService;
 
     @GetMapping
-    public List<TeamResponse> getAllTeams(){
-        return teamService.getAllTeams();
+    public ResponseEntity<List<TeamResponse>> getAllTeams(){
+        return ResponseEntity.ok(teamService.getAllTeams());
     }
 
     @GetMapping("/{teamId}")
-    public TeamResponse getTeamById(@PathVariable Long teamId){
-        return teamService.getTeamById(teamId);
+    public ResponseEntity<TeamResponse> getTeamById(@PathVariable Long teamId){
+        return ResponseEntity.ok(teamService.getTeamById(teamId));
     }
 
     @GetMapping("/{teamId}/users")
-    public TeamResponse getTeamUsersById(@PathVariable Long teamId){
-        return teamService.getTeamUsersById(teamId);
+    public ResponseEntity<TeamResponse> getTeamUsersById(@PathVariable Long teamId){
+        return ResponseEntity.ok(teamService.getTeamUsersById(teamId));
     }
 
     @PostMapping
-    public TeamResponse createTeam(@RequestBody Team team){
-        return teamService.createTeam(team);
+    public ResponseEntity<TeamResponse> createTeam(@RequestBody CreateTeamRequest team){
+        return ResponseEntity.status(HttpStatus.CREATED).body(teamService.createTeam(team));
     }
 }

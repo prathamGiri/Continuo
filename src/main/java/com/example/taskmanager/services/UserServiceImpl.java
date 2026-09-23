@@ -5,11 +5,15 @@ import com.example.taskmanager.dto.responses.UserResponse;
 import com.example.taskmanager.entities.Team;
 import com.example.taskmanager.entities.User;
 import com.example.taskmanager.enums.UserRole;
-import com.example.taskmanager.mappers.UserResponseMapper;
+import com.example.taskmanager.exceptions.*;
+import com.example.taskmanager.mappers.UserMapper;
 import com.example.taskmanager.repository.TeamRepository;
 import com.example.taskmanager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -24,82 +28,107 @@ public class UserServiceImpl implements UserService {
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(UserResponseMapper::toDTO)
+                .map(UserMapper::toDTO)
                 .toList();
     }
 
     @Override
     public UserResponse getUserById(Long userId){
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return UserResponseMapper.toDTO(user);
+                .orElseThrow(() -> new UserNotFoundException(userId));
+        return UserMapper.toDTO(user);
     }
 
     @Override
     public UserResponse createUser(User user) {
-        return UserResponseMapper.toDTO(userRepository.save(user));
+        return UserMapper.toDTO(userRepository.save(user));
     }
 
     @Override
-    public UserResponse updateUserTeam(Long userId, UpdateUserRequest request){
+    public UserResponse updateUser(Long userId, UpdateUserRequest request){
+        UserResponse updatedUser = null;
+        boolean updated = false;
+        if (request.getNewRole() != null){
+            updatedUser = updateUserRole(userId, request);
+            updated=true;
+        }
+        if (request.getNewTeamId() != null){
+            updatedUser = updateUserTeam(userId, request);
+            updated=true;
+        }
+        return updatedUser;
+    }
+
+    private UserResponse updateUserTeam(Long userId, UpdateUserRequest request){
         User existing = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
         Team newTeam = teamRepository.findById(request.getNewTeamId())
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new TeamNotFoundException(request.getNewTeamId()));
         if (existing.getTeam() != null && existing.getTeam().getTeamId().equals(newTeam.getTeamId())){
-            throw new RuntimeException("User Already a Part of the Team!");
+            throw new DuplicateTeamAssignmentException(newTeam.getTeamName());
         }else if (existing.getRole() == UserRole.SysAdmin){
-            throw new RuntimeException("User is a System Administrator. Hence already have access to all teams!");
+            throw new DuplicateRoleAssignmentException(UserRole.SysAdmin);
         }else {
             existing.setTeam(newTeam);
             existing.setRole(UserRole.Member);
         }
-        return UserResponseMapper.toDTO(userRepository.save(existing));
+        return UserMapper.toDTO(userRepository.save(existing));
     }
 
-    @Override
-    public UserResponse updateUserRole(Long userId, UpdateUserRequest request){
+    private UserResponse updateUserRole(Long userId, UpdateUserRequest request){
         User existing = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         switch (request.getNewRole()){
             case UserRole.Member -> {
-                if (existing.getTeam() != null && existing.getRole() != UserRole.Member){
+                if (existing.getTeam() == null){
+                    throw new NoTeamAssignedException();
+                }else if (existing.getRole() == UserRole.Member){
+                    throw new DuplicateRoleAssignmentException(UserRole.Member);
+                }else{
                     existing.setRole(request.getNewRole());
                 }
-                break;
             }
             case UserRole.SysAdmin -> {
                 if (existing.getRole() != UserRole.SysAdmin){
                     existing.setTeam(null);
                     existing.setRole(request.getNewRole());
+                }else {
+                    throw new DuplicateRoleAssignmentException(UserRole.SysAdmin);
                 }
-                break;
             }
             case UserRole.TeamAdmin -> {
-                if (existing.getTeam() != null && existing.getRole() != UserRole.TeamAdmin){
+                if (existing.getTeam() == null){
+                    throw new NoTeamAssignedException();
+                }else if (existing.getRole() == UserRole.TeamAdmin){
+                    throw new DuplicateRoleAssignmentException(UserRole.TeamAdmin);
+                }else{
                     existing.setRole(request.getNewRole());
                 }
-                break;
             }
             case UserRole.Normal -> {
                 if (existing.getRole() != UserRole.Normal){
                     existing.setTeam(null);
                     existing.setRole(request.getNewRole());
+                }else{
+                    throw new DuplicateRoleAssignmentException(UserRole.Normal);
                 }
             }
+            default -> {
+                throw new NoRoleFoundException(request.getNewRole());
+            }
         }
-        return UserResponseMapper.toDTO(userRepository.save(existing));
+        return UserMapper.toDTO(userRepository.save(existing));
     }
 
     @Override
     public UserResponse removeUserFromTeam(Long userId, UpdateUserRequest request){
         User existingUser = userRepository.findById(userId)
-                .orElseThrow(()-> new RuntimeException("User Not Found"));
+                .orElseThrow(()-> new UserNotFoundException(userId));
         existingUser.setTeam(null);
         existingUser.setRole(UserRole.Normal);
 
         userRepository.save(existingUser);
-        return UserResponseMapper.toDTO(userRepository.save(existingUser));
+        return UserMapper.toDTO(userRepository.save(existingUser));
     }
 }

@@ -1,12 +1,13 @@
 package com.example.taskmanager.mappers;
 
+import com.example.taskmanager.dto.requests.CreateTeamRequest;
 import com.example.taskmanager.dto.responses.TeamResponse;
 import com.example.taskmanager.entities.Team;
 import com.example.taskmanager.entities.User;
 
 import java.util.List;
 
-public class TeamResponseMapper {
+public class TeamMapper {
     public static TeamResponse teamDTO(Team team){
         return TeamResponse.builder()
                 .teamId(team.getTeamId())
@@ -18,7 +19,13 @@ public class TeamResponseMapper {
         return TeamResponse.builder()
                 .teamId(team.getTeamId())
                 .teamName(team.getTeamName())
-                .teamUsersList(users.stream().map(UserResponseMapper::toDTO).toList())
+                .teamUsersList(users.stream().map(UserMapper::toDTO).toList())
+                .build();
+    }
+
+    public static Team toEntity(CreateTeamRequest req){
+        return Team.builder()
+                .teamName(req.getTeamName())
                 .build();
     }
 }
