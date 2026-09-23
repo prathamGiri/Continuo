@@ -1,8 +1,10 @@
 package com.example.taskmanager.dto.responses;
 
-import com.example.taskmanager.entities.Team;
 import com.example.taskmanager.enums.UserRole;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
@@ -13,5 +15,4 @@ public class UserResponse {
     private String userName;
     private String emailId;
     private UserRole role;
-    private Team team;
 }

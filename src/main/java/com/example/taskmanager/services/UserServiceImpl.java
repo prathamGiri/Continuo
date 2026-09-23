@@ -1,7 +1,10 @@
 package com.example.taskmanager.services;
 
-import com.example.taskmanager.dto.requests.UpdateUserRequest;
+import com.example.taskmanager.dto.requests.CreateUserRequest;
+import com.example.taskmanager.dto.requests.UpdateUserRoleRequest;
+import com.example.taskmanager.dto.requests.UpdateUserTeamRequest;
 import com.example.taskmanager.dto.responses.UserResponse;
+import com.example.taskmanager.dto.responses.UserResponseWithTeam;
 import com.example.taskmanager.entities.Team;
 import com.example.taskmanager.entities.User;
 import com.example.taskmanager.enums.UserRole;
@@ -10,10 +13,7 @@ import com.example.taskmanager.mappers.UserMapper;
 import com.example.taskmanager.repository.TeamRepository;
 import com.example.taskmanager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -25,41 +25,28 @@ public class UserServiceImpl implements UserService {
     private final TeamRepository teamRepository;
 
     @Override
-    public List<UserResponse> getAllUsers() {
+    public List<UserResponseWithTeam> getAllUsers() {
         return userRepository.findAll()
                 .stream()
-                .map(UserMapper::toDTO)
+                .map(UserMapper::toDTOWithTeam)
                 .toList();
     }
 
     @Override
-    public UserResponse getUserById(Long userId){
+    public UserResponseWithTeam getUserById(Long userId){
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
-        return UserMapper.toDTO(user);
+        return UserMapper.toDTOWithTeam(user);
     }
 
     @Override
-    public UserResponse createUser(User user) {
-        return UserMapper.toDTO(userRepository.save(user));
+    public UserResponse createUser(CreateUserRequest request) {
+        User user = UserMapper.toEntity(request);
+        return UserMapper.toDTOWithoutTeam(userRepository.save(user));
     }
 
     @Override
-    public UserResponse updateUser(Long userId, UpdateUserRequest request){
-        UserResponse updatedUser = null;
-        boolean updated = false;
-        if (request.getNewRole() != null){
-            updatedUser = updateUserRole(userId, request);
-            updated=true;
-        }
-        if (request.getNewTeamId() != null){
-            updatedUser = updateUserTeam(userId, request);
-            updated=true;
-        }
-        return updatedUser;
-    }
-
-    private UserResponse updateUserTeam(Long userId, UpdateUserRequest request){
+    public UserResponseWithTeam updateUserTeam(Long userId, UpdateUserTeamRequest request){
         User existing = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
         Team newTeam = teamRepository.findById(request.getNewTeamId())
@@ -72,10 +59,11 @@ public class UserServiceImpl implements UserService {
             existing.setTeam(newTeam);
             existing.setRole(UserRole.Member);
         }
-        return UserMapper.toDTO(userRepository.save(existing));
+        return UserMapper.toDTOWithTeam(userRepository.save(existing));
     }
 
-    private UserResponse updateUserRole(Long userId, UpdateUserRequest request){
+    @Override
+    public UserResponseWithTeam updateUserRole(Long userId, UpdateUserRoleRequest request){
         User existing = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -118,17 +106,17 @@ public class UserServiceImpl implements UserService {
                 throw new NoRoleFoundException(request.getNewRole());
             }
         }
-        return UserMapper.toDTO(userRepository.save(existing));
+        return UserMapper.toDTOWithTeam(userRepository.save(existing));
     }
 
     @Override
-    public UserResponse removeUserFromTeam(Long userId, UpdateUserRequest request){
+    public UserResponseWithTeam removeUserFromTeam(Long userId){
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(()-> new UserNotFoundException(userId));
         existingUser.setTeam(null);
         existingUser.setRole(UserRole.Normal);
 
         userRepository.save(existingUser);
-        return UserMapper.toDTO(userRepository.save(existingUser));
+        return UserMapper.toDTOWithTeam(userRepository.save(existingUser));
     }
 }

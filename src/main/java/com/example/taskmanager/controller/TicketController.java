@@ -1,10 +1,11 @@
 package com.example.taskmanager.controller;
 
+import com.example.taskmanager.dto.requests.UpdateTicketAssignedUserRequest;
+import com.example.taskmanager.dto.requests.UpdateTicketStatusRequest;
 import com.example.taskmanager.dto.responses.TicketResponse;
-import com.example.taskmanager.entities.Ticket;
 import com.example.taskmanager.dto.requests.CreateTicketRequest;
 import com.example.taskmanager.services.TicketService;
-import com.example.taskmanager.dto.requests.UpdateTicketRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,12 +41,17 @@ public class TicketController {
     }
 
     @PostMapping
-    public ResponseEntity<TicketResponse> createTicket(@RequestBody CreateTicketRequest ticket){
+    public ResponseEntity<TicketResponse> createTicket(@Valid @RequestBody CreateTicketRequest ticket){
         return ResponseEntity.status(HttpStatus.CREATED).body(ticketService.createTicket(ticket));
     }
 
-    @PatchMapping("/{ticketId}")
-    public ResponseEntity<TicketResponse> updateTicket(@PathVariable Long ticketId, @RequestBody UpdateTicketRequest ticket){
-        return ResponseEntity.ok(ticketService.updateTicket(ticketId, ticket));
+    @PatchMapping("/{ticketId}/assign")
+    public ResponseEntity<TicketResponse> updateTicketAssignedUser(@PathVariable Long ticketId, @Valid @RequestBody UpdateTicketAssignedUserRequest request){
+        return ResponseEntity.ok(ticketService.updateTicketAssignedUser(ticketId, request));
+    }
+
+    @PatchMapping("/{ticketId}/status")
+    public ResponseEntity<TicketResponse> updateTicketStatus(@PathVariable Long ticketId, @Valid @RequestBody UpdateTicketStatusRequest request){
+        return ResponseEntity.ok(ticketService.updateTicketStatus(ticketId, request));
     }
 }

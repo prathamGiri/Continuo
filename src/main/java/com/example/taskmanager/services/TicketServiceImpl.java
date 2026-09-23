@@ -1,11 +1,13 @@
 package com.example.taskmanager.services;
 
 import com.example.taskmanager.dto.requests.CreateTicketRequest;
-import com.example.taskmanager.dto.requests.UpdateTicketRequest;
+import com.example.taskmanager.dto.requests.UpdateTicketAssignedUserRequest;
+import com.example.taskmanager.dto.requests.UpdateTicketStatusRequest;
 import com.example.taskmanager.dto.responses.TicketResponse;
 import com.example.taskmanager.entities.Team;
 import com.example.taskmanager.entities.Ticket;
 import com.example.taskmanager.entities.User;
+import com.example.taskmanager.enums.TicketStatus;
 import com.example.taskmanager.exceptions.TeamNotFoundException;
 import com.example.taskmanager.exceptions.TicketNotFoundException;
 import com.example.taskmanager.exceptions.UserNotFoundException;
@@ -69,24 +71,25 @@ public class TicketServiceImpl implements TicketService{
         ticket.setForTeam(forTeam);
         ticket.setFromTeam(fromTeam);
         ticket.setFromUser(fromUser);
-        ticket.setTicketStatus(request.getTicketStatus());
 
         return TicketMapper.toDTO(ticketRepository.save(ticket));
     }
 
     @Override
-    public TicketResponse updateTicket(Long ticketId, UpdateTicketRequest ticket){
+    public TicketResponse updateTicketStatus(Long ticketId, UpdateTicketStatusRequest request){
         Ticket existing = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
-        User assignedUser;
-        if (ticket.getAssignedUserId() != null){
-            assignedUser = userRepository.findById(ticket.getAssignedUserId())
-                    .orElseThrow(() -> new UserNotFoundException(ticket.getAssignedUserId()));
-            existing.setAssignedUser(assignedUser);
-        }
-        if (ticket.getTicketStatus() != null){
-            existing.setTicketStatus(ticket.getTicketStatus());
-        }
+        existing.setTicketStatus(request.getTicketStatus());
+        return TicketMapper.toDTO(ticketRepository.save(existing));
+    }
+
+    @Override
+    public TicketResponse updateTicketAssignedUser(Long ticketId, UpdateTicketAssignedUserRequest ticket){
+        Ticket existing = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new TicketNotFoundException(ticketId));
+        User assignedUser = userRepository.findById(ticket.getAssignedUserId())
+                .orElseThrow(() -> new UserNotFoundException(ticket.getAssignedUserId()));
+        existing.setAssignedUser(assignedUser);
         return TicketMapper.toDTO(ticketRepository.save(existing));
     }
 }

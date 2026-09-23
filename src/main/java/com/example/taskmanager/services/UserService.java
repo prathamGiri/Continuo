@@ -1,15 +1,18 @@
 package com.example.taskmanager.services;
 
-import com.example.taskmanager.dto.requests.UpdateUserRequest;
+import com.example.taskmanager.dto.requests.CreateUserRequest;
+import com.example.taskmanager.dto.requests.UpdateUserRoleRequest;
+import com.example.taskmanager.dto.requests.UpdateUserTeamRequest;
 import com.example.taskmanager.dto.responses.UserResponse;
-import com.example.taskmanager.entities.User;
+import com.example.taskmanager.dto.responses.UserResponseWithTeam;
 
 import java.util.List;
 
 public interface UserService {
-    List<UserResponse> getAllUsers();
-    UserResponse getUserById(Long userId);
-    UserResponse createUser(User user);
-    UserResponse updateUser(Long userId, UpdateUserRequest request);
-    UserResponse removeUserFromTeam(Long userId, UpdateUserRequest request);
+    List<UserResponseWithTeam> getAllUsers();
+    UserResponseWithTeam getUserById(Long userId);
+    UserResponse createUser(CreateUserRequest request);
+    UserResponseWithTeam updateUserRole(Long userId, UpdateUserRoleRequest request);
+    UserResponseWithTeam updateUserTeam(Long userId, UpdateUserTeamRequest request);
+    UserResponseWithTeam removeUserFromTeam(Long userId);
 }

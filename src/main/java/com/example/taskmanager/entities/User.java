@@ -32,6 +32,6 @@ public class User {
     protected void onCreate() { this.role = UserRole.Normal; }
 
     @ManyToOne
-    @JoinColumn(name = "teamId", nullable = true)
+    @JoinColumn
     private Team team;
 }

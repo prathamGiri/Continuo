@@ -2,6 +2,9 @@ package com.example.taskmanager.mappers;
 
 import com.example.taskmanager.dto.requests.CreateTeamRequest;
 import com.example.taskmanager.dto.responses.TeamResponse;
+import com.example.taskmanager.dto.responses.TeamResponseWithUserList;
+import com.example.taskmanager.dto.responses.UserResponse;
+import com.example.taskmanager.dto.responses.UserResponseWithTeam;
 import com.example.taskmanager.entities.Team;
 import com.example.taskmanager.entities.User;
 
@@ -15,11 +18,12 @@ public class TeamMapper {
                 .build();
     }
 
-    public static TeamResponse teamUsersDTO(Team team, List<User> users){
-        return TeamResponse.builder()
+    public static TeamResponseWithUserList teamUsersDTO(Team team, List<User> users){
+        List<UserResponse> parsedUsers = users.stream().map(UserMapper::toDTOWithoutTeam).toList();
+        return TeamResponseWithUserList.builder()
                 .teamId(team.getTeamId())
                 .teamName(team.getTeamName())
-                .teamUsersList(users.stream().map(UserMapper::toDTO).toList())
+                .teamUsersList(parsedUsers)
                 .build();
     }
 

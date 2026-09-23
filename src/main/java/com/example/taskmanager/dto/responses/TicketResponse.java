@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 @Builder
 public class TicketResponse {
     private Long ticketId;
-    private Team forTeam;
-    private Team fromTeam;
+    private TeamResponse forTeam;
+    private TeamResponse fromTeam;
     private UserResponse fromUser;
     private UserResponse assignedUser;
     private TicketStatus ticketStatus;

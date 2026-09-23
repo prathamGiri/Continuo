@@ -44,6 +44,7 @@ public class Ticket {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.ticketStatus = TicketStatus.Created;
     }
 
 }

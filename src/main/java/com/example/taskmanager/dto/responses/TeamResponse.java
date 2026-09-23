@@ -14,5 +14,4 @@ import java.util.List;
 public class TeamResponse {
     private Long teamId;
     private String teamName;
-    private List<UserResponse> teamUsersList;
 }
