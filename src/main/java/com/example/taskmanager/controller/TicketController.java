@@ -1,6 +1,7 @@
 package com.example.taskmanager.controller;
 
 import com.example.taskmanager.dto.requests.UpdateTicketAssignedUserRequest;
+import com.example.taskmanager.dto.requests.UpdateTicketDetailsRequest;
 import com.example.taskmanager.dto.requests.UpdateTicketStatusRequest;
 import com.example.taskmanager.dto.responses.TicketResponse;
 import com.example.taskmanager.dto.requests.CreateTicketRequest;
@@ -12,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,6 +43,11 @@ public class TicketController {
     @PostMapping
     public ResponseEntity<TicketResponse> createTicket(@Valid @RequestBody CreateTicketRequest ticket){
         return ResponseEntity.status(HttpStatus.CREATED).body(ticketService.createTicket(ticket));
+    }
+
+    @PatchMapping("/{ticketId}")
+    public ResponseEntity<TicketResponse> updateTicketDetails(@PathVariable Long ticketId, @Valid @RequestBody UpdateTicketDetailsRequest request){
+        return ResponseEntity.ok(ticketService.updateTicketDetails(ticketId, request));
     }
 
     @PatchMapping("/{ticketId}/assign")

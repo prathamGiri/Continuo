@@ -1,9 +1,11 @@
 package com.example.taskmanager.entities;
 
+import com.example.taskmanager.enums.TicketPriority;
 import com.example.taskmanager.enums.TicketStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,6 +19,18 @@ public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long ticketId;
+
+    @Column(nullable = false, length = 150)
+    private String title;
+
+    @Column(length = 2000)
+    private String description;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private TicketPriority priority;
+
+    private LocalDate dueDate;
 
     @ManyToOne
     @JoinColumn(name = "forTeamId", nullable = false)
@@ -41,10 +55,25 @@ public class Ticket {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    // Set when the ticket moves to Done; cleared if it is reopened.
+    private LocalDateTime closedAt;
+
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
         this.ticketStatus = TicketStatus.Created;
+        if (this.priority == null) {
+            this.priority = TicketPriority.Medium;
+        }
     }
 
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

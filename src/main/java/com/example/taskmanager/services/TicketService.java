@@ -2,6 +2,7 @@ package com.example.taskmanager.services;
 
 import com.example.taskmanager.dto.requests.CreateTicketRequest;
 import com.example.taskmanager.dto.requests.UpdateTicketAssignedUserRequest;
+import com.example.taskmanager.dto.requests.UpdateTicketDetailsRequest;
 import com.example.taskmanager.dto.requests.UpdateTicketStatusRequest;
 import com.example.taskmanager.dto.responses.TicketResponse;
 
@@ -14,5 +15,6 @@ public interface TicketService {
     List<TicketResponse> getTicketByUser(Long userId);
     TicketResponse updateTicketAssignedUser(Long ticketId, UpdateTicketAssignedUserRequest ticket);
     TicketResponse updateTicketStatus(Long ticketId, UpdateTicketStatusRequest ticket);
+    TicketResponse updateTicketDetails(Long ticketId, UpdateTicketDetailsRequest request);
     TicketResponse createTicket(CreateTicketRequest request);
 }
