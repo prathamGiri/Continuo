@@ -1,8 +1,10 @@
 package com.example.taskmanager.services;
 
 import com.example.taskmanager.dto.requests.CreateUserRequest;
+import com.example.taskmanager.dto.requests.LoginRequest;
 import com.example.taskmanager.dto.requests.UpdateUserRoleRequest;
 import com.example.taskmanager.dto.requests.UpdateUserTeamRequest;
+import com.example.taskmanager.dto.responses.AuthResponse;
 import com.example.taskmanager.dto.responses.UserResponse;
 import com.example.taskmanager.dto.responses.UserResponseWithTeam;
 
@@ -15,4 +17,5 @@ public interface UserService {
     UserResponseWithTeam updateUserRole(Long userId, UpdateUserRoleRequest request);
     UserResponseWithTeam updateUserTeam(Long userId, UpdateUserTeamRequest request);
     UserResponseWithTeam removeUserFromTeam(Long userId);
+    AuthResponse loginUser(LoginRequest request);
 }

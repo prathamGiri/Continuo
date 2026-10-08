@@ -1,8 +1,10 @@
 package com.example.taskmanager.services;
 
 import com.example.taskmanager.dto.requests.CreateUserRequest;
+import com.example.taskmanager.dto.requests.LoginRequest;
 import com.example.taskmanager.dto.requests.UpdateUserRoleRequest;
 import com.example.taskmanager.dto.requests.UpdateUserTeamRequest;
+import com.example.taskmanager.dto.responses.AuthResponse;
 import com.example.taskmanager.dto.responses.UserResponse;
 import com.example.taskmanager.dto.responses.UserResponseWithTeam;
 import com.example.taskmanager.entities.Team;
@@ -15,9 +17,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +39,12 @@ class UserServiceTest {
 
     @Mock
     private TeamRepository teamRepository;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private TokenService tokenService;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -119,9 +129,10 @@ class UserServiceTest {
     class CreateUser {
 
         @Test
-        void savesAndReturnsMappedUser() {
+        void hashesPasswordAndReturnsMappedUser() {
             CreateUserRequest request = new CreateUserRequest("new_user", "new_user@gmail.com", "password123");
 
+            when(passwordEncoder.encode("password123")).thenReturn("hashed");
             when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
                 User saved = invocation.getArgument(0);
                 saved.setUserId(10L);
@@ -130,8 +141,58 @@ class UserServiceTest {
 
             UserResponse result = userService.createUser(request);
 
+            ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+            verify(userRepository).save(captor.capture());
+            User saved = captor.getValue();
+            assertThat(saved.getPassword()).isEqualTo("hashed").isNotEqualTo("password123");
+
+            assertEquals(10L, result.getUserId());
             assertEquals("new_user", result.getUserName());
-            verify(userRepository, times(1)).save(any(User.class));
+            assertEquals("new_user@gmail.com", result.getEmailId());
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // loginUser
+    // ------------------------------------------------------------------
+    @Nested
+    class LoginUser {
+
+        @Test
+        void returnsTokenWhenCredentialsAreValid() {
+            normalUser.setPassword("hashed");
+            LoginRequest request = new LoginRequest("utk@gmail.com", "password123");
+            AuthResponse token = new AuthResponse("jwt-token", "Bearer", 3600);
+
+            when(userRepository.findUserByEmailId("utk@gmail.com")).thenReturn(Optional.of(normalUser));
+            when(passwordEncoder.matches("password123", "hashed")).thenReturn(true);
+            when(tokenService.generateToken(normalUser)).thenReturn(token);
+
+            AuthResponse result = userService.loginUser(request);
+
+            assertSame(token, result);
+        }
+
+        @Test
+        void throwsWhenEmailIsUnknown() {
+            LoginRequest request = new LoginRequest("ghost@gmail.com", "password123");
+            when(userRepository.findUserByEmailId("ghost@gmail.com")).thenReturn(Optional.empty());
+
+            assertThrows(InvalidCredentialsException.class, () -> userService.loginUser(request));
+            verify(passwordEncoder, never()).matches(any(), any());
+            verify(tokenService, never()).generateToken(any());
+        }
+
+        @Test
+        void throwsWhenPasswordIsWrong() {
+            normalUser.setPassword("hashed");
+            LoginRequest request = new LoginRequest("utk@gmail.com", "wrong-password");
+
+            when(userRepository.findUserByEmailId("utk@gmail.com")).thenReturn(Optional.of(normalUser));
+            when(passwordEncoder.matches("wrong-password", "hashed")).thenReturn(false);
+
+            assertThrows(InvalidCredentialsException.class, () -> userService.loginUser(request));
+            verify(tokenService, never()).generateToken(any());
         }
     }
 

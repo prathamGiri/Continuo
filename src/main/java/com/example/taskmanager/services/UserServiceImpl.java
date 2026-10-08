@@ -1,8 +1,10 @@
 package com.example.taskmanager.services;
 
 import com.example.taskmanager.dto.requests.CreateUserRequest;
+import com.example.taskmanager.dto.requests.LoginRequest;
 import com.example.taskmanager.dto.requests.UpdateUserRoleRequest;
 import com.example.taskmanager.dto.requests.UpdateUserTeamRequest;
+import com.example.taskmanager.dto.responses.AuthResponse;
 import com.example.taskmanager.dto.responses.UserResponse;
 import com.example.taskmanager.dto.responses.UserResponseWithTeam;
 import com.example.taskmanager.entities.Team;
@@ -13,6 +15,7 @@ import com.example.taskmanager.mappers.UserMapper;
 import com.example.taskmanager.repository.TeamRepository;
 import com.example.taskmanager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +26,8 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final TeamRepository teamRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final TokenService tokenService;
 
     @Override
     public List<UserResponseWithTeam> getAllUsers() {
@@ -42,7 +47,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse createUser(CreateUserRequest request) {
         User user = UserMapper.toEntity(request);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return UserMapper.toDTOWithoutTeam(userRepository.save(user));
+    }
+
+    @Override
+    public AuthResponse loginUser(LoginRequest request){
+        User user = userRepository.findUserByEmailId(request.getEmailId())
+                .orElseThrow(InvalidCredentialsException::new);
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException();
+        }
+        return tokenService.generateToken(user);
     }
 
     @Override

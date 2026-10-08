@@ -1,14 +1,11 @@
 package com.example.taskmanager.controller;
 
-import com.example.taskmanager.dto.requests.CreateUserRequest;
 import com.example.taskmanager.dto.requests.UpdateUserRoleRequest;
 import com.example.taskmanager.dto.requests.UpdateUserTeamRequest;
-import com.example.taskmanager.dto.responses.UserResponse;
 import com.example.taskmanager.dto.responses.UserResponseWithTeam;
 import com.example.taskmanager.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,11 +25,6 @@ public class UserController {
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponseWithTeam> getUserById(@PathVariable Long userId){
         return ResponseEntity.ok(userService.getUserById(userId));
-    }
-
-    @PostMapping
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request){
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(request));
     }
 
     @PatchMapping("/{userId}/team")

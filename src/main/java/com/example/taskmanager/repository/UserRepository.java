@@ -10,4 +10,5 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByTeam(Team team);
+    Optional<User> findUserByEmailId(String emailId);
 }
