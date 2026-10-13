@@ -61,22 +61,22 @@ The whole stack runs with one `docker compose up`, and every push is built and t
 
 ```mermaid
 flowchart LR
-    C[Client] -->|HTTPS + JWT| API
+    C["Client"] -->|"HTTPS + JWT"| API
 
-    subgraph API[taskmanager API]
+    subgraph API["taskmanager API"]
         direction TB
-        SEC[Security filter chain<br/>JWT validation] --> CT[Controllers<br/>@PreAuthorize]
-        CT --> S[Services]
-        S --> AP[AccessPolicy]
-        S --> R[Repositories]
-        S --> PUB[KafkaTicketEventPublisher]
+        SEC["Security filter chain<br/>(JWT validation)"] --> CT["Controllers<br/>(role checks)"]
+        CT --> S["Services"]
+        S --> AP["AccessPolicy"]
+        S --> R["Repositories"]
+        S --> PUB["KafkaTicketEventPublisher"]
     end
 
-    R --> DB[(PostgreSQL)]
-    PUB -->|"ticket-events<br/>key = ticketId"| K[[Kafka]]
-    K --> W[email-worker<br/>consumer group]
-    W -->|SMTP| M[Mail server / Mailpit]
-    W -.->|after 3 failed retries| DLT[[ticket-events.DLT]]
+    R --> DB[("PostgreSQL")]
+    PUB -->|"ticket-events, key = ticketId"| K[["Kafka"]]
+    K --> W["email-worker<br/>(consumer group)"]
+    W -->|"SMTP"| M["Mail server / Mailpit"]
+    W -.->|"after 3 failed retries"| DLT[["ticket-events.DLT"]]
 ```
 
 **Why a separate worker?** Sending email is slow and can fail. Publishing an event takes milliseconds, so the API responds immediately. The worker can be retried, scaled or redeployed without touching the API.
