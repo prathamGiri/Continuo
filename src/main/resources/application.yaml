@@ -15,7 +15,25 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  # Only used when app.notifications.enabled=true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    producer:
+      acks: all
+      properties:
+        # Fail fast instead of blocking a request for 60s if the broker is unreachable
+        max.block.ms: 5000
+
 security:
   jwt:
     secret: "${JWT_SECRET}"        # base64, at least 32 bytes
     expiry-minutes: 60
+
+app:
+  notifications:
+    enabled: ${NOTIFICATIONS_ENABLED:false}
+    topic: ${TICKET_EVENTS_TOPIC:ticket-events}
+  # Creates the first SysAdmin on startup when both are set (see AdminBootstrap)
+  bootstrap-admin:
+    email: ${BOOTSTRAP_ADMIN_EMAIL:}
+    password: ${BOOTSTRAP_ADMIN_PASSWORD:}

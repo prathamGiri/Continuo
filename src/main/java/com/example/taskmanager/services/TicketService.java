@@ -8,13 +8,14 @@ import com.example.taskmanager.dto.responses.TicketResponse;
 
 import java.util.List;
 
+/** actorId is the id of the authenticated caller, taken from the JWT. */
 public interface TicketService {
     List<TicketResponse> getAllTickets();
-    TicketResponse getTicketById(Long ticketId);
-    List<TicketResponse> getTicketByTeam(Long teamId);
-    List<TicketResponse> getTicketByUser(Long userId);
-    TicketResponse updateTicketAssignedUser(Long ticketId, UpdateTicketAssignedUserRequest ticket);
-    TicketResponse updateTicketStatus(Long ticketId, UpdateTicketStatusRequest ticket);
-    TicketResponse updateTicketDetails(Long ticketId, UpdateTicketDetailsRequest request);
-    TicketResponse createTicket(CreateTicketRequest request);
+    TicketResponse getTicketById(Long actorId, Long ticketId);
+    List<TicketResponse> getTicketByTeam(Long actorId, Long teamId);
+    List<TicketResponse> getTicketByUser(Long actorId, Long userId);
+    TicketResponse createTicket(Long actorId, CreateTicketRequest request);
+    TicketResponse updateTicketDetails(Long actorId, Long ticketId, UpdateTicketDetailsRequest request);
+    TicketResponse updateTicketAssignedUser(Long actorId, Long ticketId, UpdateTicketAssignedUserRequest request);
+    TicketResponse updateTicketStatus(Long actorId, Long ticketId, UpdateTicketStatusRequest request);
 }

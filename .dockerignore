@@ -1,0 +1,9 @@
+.git
+.github
+.idea
+*.iml
+target/
+email-worker/
+.env
+# Never bake local secrets into the image
+src/main/resources/application-local.yml

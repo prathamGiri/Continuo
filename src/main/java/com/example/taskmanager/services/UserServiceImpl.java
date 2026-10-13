@@ -14,6 +14,7 @@ import com.example.taskmanager.exceptions.*;
 import com.example.taskmanager.mappers.UserMapper;
 import com.example.taskmanager.repository.TeamRepository;
 import com.example.taskmanager.repository.UserRepository;
+import com.example.taskmanager.security.AccessPolicy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class UserServiceImpl implements UserService {
     private final TeamRepository teamRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
+    private final AccessPolicy accessPolicy;
 
     @Override
     public List<UserResponseWithTeam> getAllUsers() {
@@ -62,11 +64,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseWithTeam updateUserTeam(Long userId, UpdateUserTeamRequest request){
+    public UserResponseWithTeam updateUserTeam(Long actorId, Long userId, UpdateUserTeamRequest request){
         User existing = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
         Team newTeam = teamRepository.findById(request.getNewTeamId())
                 .orElseThrow(() -> new TeamNotFoundException(request.getNewTeamId()));
+        accessPolicy.checkCanAddToTeam(actorId, existing, newTeam.getTeamId());
         if (existing.getTeam() != null && existing.getTeam().getTeamId().equals(newTeam.getTeamId())){
             throw new DuplicateTeamAssignmentException(newTeam.getTeamName());
         }else if (existing.getRole() == UserRole.SysAdmin){
@@ -126,9 +129,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseWithTeam removeUserFromTeam(Long userId){
+    public UserResponseWithTeam removeUserFromTeam(Long actorId, Long userId){
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(()-> new UserNotFoundException(userId));
+        Long currentTeamId = existingUser.getTeam() == null ? null : existingUser.getTeam().getTeamId();
+        accessPolicy.checkCanManageTeamMembers(actorId, currentTeamId);
         existingUser.setTeam(null);
         existingUser.setRole(UserRole.Normal);
 

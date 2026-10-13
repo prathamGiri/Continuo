@@ -13,6 +13,7 @@ import com.example.taskmanager.enums.UserRole;
 import com.example.taskmanager.exceptions.*;
 import com.example.taskmanager.repository.TeamRepository;
 import com.example.taskmanager.repository.UserRepository;
+import com.example.taskmanager.security.AccessPolicy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,12 @@ class UserServiceTest {
 
     @Mock
     private TokenService tokenService;
+
+    // Authorization rules are unit-tested in AccessPolicyTest; here the policy simply allows everything.
+    @Mock
+    private AccessPolicy accessPolicy;
+
+    private static final Long ACTOR_ID = 500L;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -208,7 +215,7 @@ class UserServiceTest {
             UpdateUserTeamRequest request = new UpdateUserTeamRequest(1L);
 
             assertThrows(UserNotFoundException.class,
-                    () -> userService.updateUserTeam(99L, request));
+                    () -> userService.updateUserTeam(ACTOR_ID, 99L, request));
 
             verify(teamRepository, never()).findById(any());
         }
@@ -220,7 +227,7 @@ class UserServiceTest {
             UpdateUserTeamRequest request = new UpdateUserTeamRequest(5L);
 
             assertThrows(TeamNotFoundException.class,
-                    () -> userService.updateUserTeam(1L, request));
+                    () -> userService.updateUserTeam(ACTOR_ID, 1L, request));
         }
 
         @Test
@@ -231,7 +238,7 @@ class UserServiceTest {
             UpdateUserTeamRequest request = new UpdateUserTeamRequest(1L);
 
             assertThrows(DuplicateTeamAssignmentException.class,
-                    () -> userService.updateUserTeam(1L, request));
+                    () -> userService.updateUserTeam(ACTOR_ID, 1L, request));
 
             verify(userRepository, never()).save(any());
         }
@@ -244,7 +251,7 @@ class UserServiceTest {
             UpdateUserTeamRequest request = new UpdateUserTeamRequest(2L);
 
             assertThrows(DuplicateRoleAssignmentException.class,
-                    () -> userService.updateUserTeam(1L, request));
+                    () -> userService.updateUserTeam(ACTOR_ID, 1L, request));
 
             verify(userRepository, never()).save(any());
         }
@@ -258,7 +265,7 @@ class UserServiceTest {
             when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
             UpdateUserTeamRequest request = new UpdateUserTeamRequest(2L);
 
-            UserResponseWithTeam result = userService.updateUserTeam(1L, request);
+            UserResponseWithTeam result = userService.updateUserTeam(ACTOR_ID, 1L, request);
 
             assertEquals(UserRole.Member, normalUser.getRole());
             assertEquals(2L, normalUser.getTeam().getTeamId());
@@ -406,7 +413,7 @@ class UserServiceTest {
             when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
             assertThrows(UserNotFoundException.class,
-                    () -> userService.removeUserFromTeam(99L));
+                    () -> userService.removeUserFromTeam(ACTOR_ID, 99L));
         }
 
         @Test
@@ -416,7 +423,7 @@ class UserServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(normalUser));
             when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            userService.removeUserFromTeam(1L);
+            userService.removeUserFromTeam(ACTOR_ID, 1L);
 
             assertEquals(UserRole.Normal, normalUser.getRole());
             assertNull(normalUser.getTeam());
@@ -431,7 +438,7 @@ class UserServiceTest {
             when(userRepository.findById(1L)).thenReturn(Optional.of(normalUser));
             when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-            userService.removeUserFromTeam(1L);
+            userService.removeUserFromTeam(ACTOR_ID, 1L);
 
             verify(userRepository, times(2)).save(normalUser);
         }

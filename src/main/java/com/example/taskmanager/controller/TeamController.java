@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public class TeamController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('SysAdmin')")
     public ResponseEntity<TeamResponse> createTeam(@Valid @RequestBody CreateTeamRequest req){
         return ResponseEntity.status(HttpStatus.CREATED).body(teamService.createTeam(req));
     }

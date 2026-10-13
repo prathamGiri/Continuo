@@ -12,6 +12,10 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
+/**
+ * The creator and their team are taken from the caller's JWT, never from the body,
+ * so nobody can raise a ticket on someone else's behalf.
+ */
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,10 +34,6 @@ public class CreateTicketRequest {
     @FutureOrPresent(message = "Due date cannot be in the past")
     private LocalDate dueDate;
 
-    @NotNull(message = "Must Provide a Team")
+    @NotNull(message = "Must Provide the Team the ticket is for")
     private Long forTeamId;
-    @NotNull(message = "Must Provide a Team")
-    private Long fromTeamId;
-    @NotNull(message = "Must Provide a User")
-    private Long fromUserId;
 }

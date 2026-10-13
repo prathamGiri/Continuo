@@ -4,6 +4,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -21,6 +22,25 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleInvalidCredentials(InvalidCredentialsException ex) {
         ErrorResponse error = new ErrorResponse(401, ex.getMessage(), LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    // Thrown by @PreAuthorize. Must be handled here, otherwise the catch-all below turns it into a 500.
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+        ErrorResponse error = new ErrorResponse(403, "You do not have permission to perform this action", LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    @ExceptionHandler(ForbiddenActionException.class)
+    public ResponseEntity<ErrorResponse> handleForbiddenAction(ForbiddenActionException ex) {
+        ErrorResponse error = new ErrorResponse(403, ex.getMessage(), LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    @ExceptionHandler(InvalidTicketAssignmentException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidAssignment(InvalidTicketAssignmentException ex) {
+        ErrorResponse error = new ErrorResponse(400, ex.getMessage(), LocalDateTime.now());
+        return ResponseEntity.badRequest().body(error);
     }
 
     @ExceptionHandler(UserNotFoundException.class)

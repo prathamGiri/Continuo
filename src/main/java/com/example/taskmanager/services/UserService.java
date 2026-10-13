@@ -15,7 +15,7 @@ public interface UserService {
     UserResponseWithTeam getUserById(Long userId);
     UserResponse createUser(CreateUserRequest request);
     UserResponseWithTeam updateUserRole(Long userId, UpdateUserRoleRequest request);
-    UserResponseWithTeam updateUserTeam(Long userId, UpdateUserTeamRequest request);
-    UserResponseWithTeam removeUserFromTeam(Long userId);
+    UserResponseWithTeam updateUserTeam(Long actorId, Long userId, UpdateUserTeamRequest request);
+    UserResponseWithTeam removeUserFromTeam(Long actorId, Long userId);
     AuthResponse loginUser(LoginRequest request);
 }

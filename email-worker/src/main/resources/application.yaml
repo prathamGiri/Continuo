@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: email-worker
+  main:
+    web-application-type: none
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    consumer:
+      # All worker instances share one group, so Kafka splits the partitions between them
+      group-id: email-worker
+      auto-offset-reset: earliest
+
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${MAIL_STARTTLS:false}
+
+app:
+  kafka:
+    topic: ${TICKET_EVENTS_TOPIC:ticket-events}
+  mail:
+    from: ${MAIL_FROM:taskmanager@example.com}
